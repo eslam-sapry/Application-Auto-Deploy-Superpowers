@@ -11,34 +11,35 @@ commands:
           channel: alert
           template: basic_fail_1
 
-#   install_awscli:
-#     description: Install AWS CLI v2
-#     steps:
-#       - run:
-#           name: Install AWS CLI v2
-#           command: |
-#             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-#             unzip awscliv2.zip
-#             sudo ./aws/install
+  install_awscli:
+    description: Install AWS CLI v2
+    steps:
+      - run:
+          name: Install AWS CLI v2
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
 
-#   install_ansible:
-#     description: Install Ansible
-#     steps:
-#       - run:
-#           name: Install Ansible
-#           command: |
-#             sudo apt update
-#             sudo apt install software-properties-common -y
-#             sudo add-apt-repository --yes --update ppa:ansible/ansible
-#             sudo apt install ansible -y
-#   install_nodejs:
-#     description: Install Node.js 13
-#     steps:
-#       - run:
-#           name: Install Node.js 13
-#           command: |
-#             curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
-#             sudo apt install -y nodejs
+  install_ansible:
+    description: Install Ansible
+    steps:
+      - run:
+          name: Install Ansible
+          command: |
+            sudo apt update
+            sudo apt install software-properties-common -y
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible -y
+
+  install_nodejs:
+    description: Install Node.js 13
+    steps:
+      - run:
+          name: Install Node.js 13
+          command: |
+            curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+            sudo apt install -y nodejs
 
 #   destroy-environment:
 #     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -152,7 +153,7 @@ jobs:
           command: |
             cd frontend
             npm install
-            # npm audit fix --force --audit-level=critical
+            npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
       - notify_on_failure
   scan-backend:
@@ -181,43 +182,43 @@ jobs:
           channel: alert
           template: success_tagged_deploy_1
 
-#   deploy-infrastructure:
-#     docker:
-#       - image: cimg/base:stable
-#     steps:
-#       - checkout
-#       - install_awscli
-#       - run:
-#           name: Ensure back-end infrastructure exists
-#           command: |
-#             aws cloudformation deploy \
-#               --template-file .circleci/files/backend.yml \
-#               --tags project=udapeople \
-#               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-#               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-#       - run:
-#           name: Ensure front-end infrastructure exist
-#           command: |
-#             aws cloudformation deploy \
-#               --template-file .circleci/files/frontend.yml \
-#               --tags project=udapeople \
-#               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-#               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-#       - run:
-#           name: Add back-end ip to ansible inventory
-#           command: |
-#             BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
-#               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-#               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-#               --output text)
-#             echo $BACKEND_PUBLIC_IP >> .circleci/ansible/inventory.txt
-#             cat .circleci/ansible/inventory.txt
-#       - persist_to_workspace:
-#           root: ~/
-#           paths:
-#             - project/.circleci/ansible/inventory.txt
-#       - destroy-environment 
-#       - notify_on_failure
+  deploy-infrastructure:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_awscli
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            echo $BACKEND_PUBLIC_IP >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      # - destroy-environment 
+      - notify_on_failure
       
 #   configure-infrastructure:
 #     docker:
@@ -436,8 +437,8 @@ workflows:
           requires: [test-frontend]
       - scan-backend:
           requires: [test-backend]
-#       - deploy-infrastructure:
-#           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
 #           filters:
 #             branches:
 #               only: [main]
