@@ -140,36 +140,36 @@ jobs:
             npm test
 #       - notify_on_failure
 
-#   scan-frontend:
-#     docker:
-#       - image: cimg/node:13.8.0
-#     steps:
-#       - checkout
-#       - restore_cache:
-#           keys: [frontend-deps]
-#       - run:
-#           name: Front-end Scan
-#           command: |
-#             cd frontend
-#             npm install
+  scan-frontend:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-deps]
+      - run:
+          name: Front-end Scan
+          command: |
+            cd frontend
+            npm install
 #             npm audit fix --force --audit-level=critical
-#             npm audit --audit-level=critical
+            npm audit --audit-level=critical
 #       - notify_on_failure
-#   scan-backend:
-#     docker:
-#       - image: cimg/node:13.8.0
-#     steps:
-#       - checkout
-#       - restore_cache:
-#           keys: [backend-deps]
-#       - run:
-#           name: Back-end Scan
-#           command: |
-#             cd backend
-#             npm install
+  scan-backend:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-deps]
+      - run:
+          name: Back-end Scan
+          command: |
+            cd backend
+            npm install
 #             npm audit fix --force --audit-level=critical
 #             npm audit fix --force --audit-level=critical
-#             npm audit --audit-level=critical
+            npm audit --audit-level=critical
 #       - notify_on_failure
 
 #   notify_on_success:
@@ -432,10 +432,10 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
-#       - scan-frontend:
-#           requires: [build-frontend]
-#       - scan-backend:
-#           requires: [build-backend]
+      - scan-frontend:
+          requires: [test-frontend]
+      - scan-backend:
+          requires: [test-backend]
 #       - deploy-infrastructure:
 #           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
 #           filters:
