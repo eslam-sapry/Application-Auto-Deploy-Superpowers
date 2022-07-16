@@ -251,9 +251,9 @@ jobs:
           command: |
             cd backend
             npm install
-            npm -v
             npm run migrations > migrations_dump.txt
             echo "npm run = $?"
+            cat migrations_dump.txt
      
       - run:
           name: Send migration status to o kvdb.io OR memstash.io
@@ -263,7 +263,7 @@ jobs:
                curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - destroy-environment
-      - revert-migrations
+      # - revert-migrations
       - notify_on_failure
 
 #   deploy-frontend:
