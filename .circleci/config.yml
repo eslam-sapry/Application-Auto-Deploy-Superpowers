@@ -421,4 +421,4 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - success_notification 
+      - success_notification 
