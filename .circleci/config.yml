@@ -357,7 +357,7 @@ jobs:
       - failure_notification
 
 ## Responsible for frontend and backend sanity check.
-### SCREENSHOT06
+### SCREENSHOT06 - SCREENSHOT07
   smoke-test:
     docker:
       - image: cimg/base:stable
@@ -394,7 +394,7 @@ jobs:
       - failure_notification
 
 ## Update confguration when deployed a second environment or stack next to our existing production stack.
-### SCREENSHOT07
+### SCREENSHOT08
   cloudfront-update:
     docker:
       - image: cimg/base:stable
@@ -420,6 +420,32 @@ jobs:
       - destroy-environment
       - revert-migrations
       - failure_notification
+      
+## Deletes the previous S3 bucket and EC2 instance.
+###SCREENSHOT09
+  cleanup:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_awscli
+      - install_nodejs
+      - run:
+          name: Remove old stacks and files
+          command: |
+            export STACKS=($(aws cloudformation list-stacks \
+                --query "StackSummaries[*].StackName" \
+                --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            echo Stack names: "${STACKS[@]}"
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id)
+            echo Old Workflow ID: $OldWorkflowID 
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            then
+              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            fi
+      - failure_notification
 
 workflows:
   default:
@@ -434,6 +460,8 @@ workflows:
           requires: [build-frontend]
       - scan-backend:
           requires: [build-backend]
+      - success_notification:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
@@ -451,4 +479,6 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
-      - success_notification 
+      - cleanup:
+          requires: [cloudfront-update]
+
