@@ -1,5 +1,17 @@
 version: 2.1
 
+## Use Slack Orbs template for job notification
+orbs: 
+  slack: circleci/slack@4.10.1
+
+commands:
+  failure_notification:
+    steps:
+      - slack/notify:
+          event: fail
+          channel: alert
+          template: basic_fail_1
+
 jobs:
 ## check for syntax errors or unintentional typos in code.
 ### SCREENSHOT01
@@ -19,6 +31,7 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-deps
+      - failure_notification
 
   build-backend:
     docker:
@@ -36,6 +49,7 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-deps
+      - failure_notification
 
 ## test the frontend and the backecnd code.
 ### SCREENSHOT02
@@ -52,6 +66,7 @@ jobs:
             cd frontend
             npm install
             npm test
+      - failure_notification
 
   test-backend:
     docker:
@@ -66,6 +81,7 @@ jobs:
             cd backend
             npm install
             npm test
+      - failure_notification
 
 ## Check vulnerabilities every time we check code.
 ### SCREENSHOT03
@@ -83,6 +99,7 @@ jobs:
             npm install
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
+      - failure_notification
 
   scan-backend:
     docker:
@@ -99,6 +116,18 @@ jobs:
             npm audit fix --force --audit-level=critical
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
+      - failure_notification
+
+## Get an alert when any job fail and or success.
+### SCREENSHOT04
+  success_notification:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - slack/notify:
+          event: pass
+          channel: alert
+          template: success_tagged_deploy_1
 
 workflows:
   default:
@@ -113,3 +142,4 @@ workflows:
           requires: [build-frontend]
       - scan-backend:
           requires: [build-backend]
+      - success_notification 
