@@ -1,6 +1,8 @@
 version: 2.1
 
 jobs:
+## check for syntax errors or unintentional typos in code.
+### SCREENSHOT01
   build-frontend:
     docker:
       - image: cimg/node:13.8.0
@@ -35,6 +37,8 @@ jobs:
           paths: [backend/node_modules]
           key: backend-deps
 
+## test the frontend and the backecnd code.
+### SCREENSHOT02
   test-frontend:
     docker:
       - image: cimg/node:13.8.0
@@ -63,6 +67,39 @@ jobs:
             npm install
             npm test
 
+## Check vulnerabilities every time we check code.
+### SCREENSHOT03
+  scan-frontend:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-deps]
+      - run:
+          name: Front-end Scan
+          command: |
+            cd frontend
+            npm install
+            npm audit fix --force --audit-level=critical
+            npm audit --audit-level=critical
+
+  scan-backend:
+    docker:
+      - image: cimg/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-deps]
+      - run:
+          name: Back-end Scan
+          command: |
+            cd backend
+            npm install
+            npm audit fix --force --audit-level=critical
+            npm audit fix --force --audit-level=critical
+            npm audit --audit-level=critical
+
 workflows:
   default:
     jobs:
@@ -72,4 +109,7 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
-
+      - scan-frontend:
+          requires: [build-frontend]
+      - scan-backend:
+          requires: [build-backend]
