@@ -1,0 +1,3 @@
+URL01: https://github.com/eslam-sapry/Application-Auto-Deploy-Superpowers
+URL02: http://udapeople-b0c0f15.s3.us-west-2.amazonaws.com/index.html
+URL03: http://d3s17q8z0enqu7.cloudfront.net/
